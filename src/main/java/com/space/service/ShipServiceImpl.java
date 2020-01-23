@@ -181,25 +181,13 @@ public class ShipServiceImpl implements ShipService {
     public Specification<Ship> filterByShipType(ShipType shipType) {
         return (root, query, cb) -> shipType == null ? null : cb.equal(root.get("shipType"), shipType);
     }
-    @Override
-    public Specification<Ship> withAfter(Long after) {
-        return new Specification<Ship>() {
-            @Override
-            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                return after == null ? cb.isTrue(cb.literal(true)) :
-                        cb.greaterThanOrEqualTo(cb.function("year", Integer.class, root.get("prodDate")), new Date(after).getYear() + 1900);
-            }
-        };
-    }
-    @Override
+
     public Specification<Ship> withBefore(Long before) {
-        return new Specification<Ship>() {
-            @Override
-            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                return before == null ? cb.isTrue(cb.literal(true)) :
-                        cb.lessThan(cb.function("year", Integer.class, root.get("prodDate")), new Date(before).getYear() + 1900);
-            }
-        };
+        return (root, query, cb) -> before == null ? cb.isTrue(cb.literal(true)) : cb.lessThan(root.get("prodDate"), new Date(before));
+    }
+
+    public Specification<Ship> withAfter(Long after) {
+        return (root, query, cb) -> after == null ? cb.isTrue(cb.literal(true)) : cb.greaterThanOrEqualTo(root.get("prodDate"), new Date(after));
     }
 
     @Override
