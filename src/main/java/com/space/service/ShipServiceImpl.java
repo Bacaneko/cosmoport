@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ShipServiceImpl implements ShipService {
@@ -180,30 +181,25 @@ public class ShipServiceImpl implements ShipService {
     public Specification<Ship> filterByShipType(ShipType shipType) {
         return (root, query, cb) -> shipType == null ? null : cb.equal(root.get("shipType"), shipType);
     }
-
     @Override
-    public Specification<Ship> filterByDate(Long after, Long before) {
-        Specification<Ship> sp = new Specification<Ship>() {
+    public Specification<Ship> withAfter(Long after) {
+        return new Specification<Ship>() {
             @Override
-            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                if (after == null && before == null) {
-                    return null;
-                }
-                if (after == null) {
-                    Date beforeDate = new Date(before);
-                    return criteriaBuilder.lessThanOrEqualTo(root.get("prodDate"), beforeDate);
-                }
-                if (before == null) {
-                    Date afterDate = new Date(after);
-                    return criteriaBuilder.greaterThanOrEqualTo(root.get("prodDate"), afterDate);
-                }
-                Date afterDate = new Date(after);
-                Date beforeDate = new Date(before-31534809815L);
-
-                return criteriaBuilder.between(root.get("prodDate"), afterDate, beforeDate);
+            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                return after == null ? cb.isTrue(cb.literal(true)) :
+                        cb.greaterThanOrEqualTo(cb.function("year", Integer.class, root.get("prodDate")), new Date(after).getYear() + 1900);
             }
         };
-        return sp;
+    }
+    @Override
+    public Specification<Ship> withBefore(Long before) {
+        return new Specification<Ship>() {
+            @Override
+            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                return before == null ? cb.isTrue(cb.literal(true)) :
+                        cb.lessThan(cb.function("year", Integer.class, root.get("prodDate")), new Date(before).getYear() + 1900);
+            }
+        };
     }
 
     @Override

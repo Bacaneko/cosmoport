@@ -30,7 +30,9 @@ public interface ShipService {
 
         Specification<Ship> filterByShipType(ShipType shipType);
 
-        Specification<Ship> filterByDate(Long after, Long before);
+        public Specification<Ship> withAfter(Long after);
+
+        public Specification<Ship> withBefore(Long before);
 
         Specification<Ship> filterByUsage(Boolean isUsed);
 
